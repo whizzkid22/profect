@@ -11,25 +11,24 @@ openai==1.59.6
 
 # ML — числа и обработка
 numpy==1.26.4
-pillow==11.1.0
+pillow==10.4.0
 opencv-python-headless==4.10.0.84
 
-# MediaPipe (Face Landmarker + Hair Segmenter)
-mediapipe==0.10.18
+# MediaPipe
+mediapipe==0.10.21
 
 # Tabular ML
 xgboost==2.1.3
 lightgbm==4.5.0
 scikit-learn==1.6.1
 
-# Deep learning (CPU-only, нужен для DeepFace и CNN)
+# Deep learning CPU-only
 tensorflow-cpu==2.17.1
 keras==2.17.0
 
-# Распознавание лиц / атрибутов
+# DeepFace
 deepface==0.0.93
 
-# PyTorch CPU (нужен если где-то используется torch)
-torch==2.5.1+cpu
-torchvision==0.20.1+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
+# PyTorch CPU
+torch==2.5.1
+torchvision==0.20.1
