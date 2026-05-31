@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hair Vision — Анализ прически</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="grain"></div>
+
+  <main class="container">
+    <header class="header">
+      <div class="header__logo">✦</div>
+      <h1>Hair Vision</h1>
+      <p class="header__sub">Анализ типа волос и формы лица</p>
+    </header>
+
+    <!-- Табы -->
+    <div class="tabs">
+      <button class="tab tab--active" data-tab="ml">
+        <span class="tab__icon">🧠</span>
+        <span>ML-модель</span>
+        <span class="tab__badge">локально</span>
+      </button>
+      <button class="tab" data-tab="transfer">
+        <span class="tab__icon">✂️</span>
+        <span>Примерить причёску</span>
+        <span class="tab__badge">HairFastGAN</span>
+      </button>
+      <button class="tab" data-tab="llm">
+        <span class="tab__icon">✨</span>
+        <span>LLM-стилист</span>
+        <span class="tab__badge">OpenRouter</span>
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         TAB: ML-модель
+    ════════════════════════════════════════════ -->
+    <section class="pane pane--active" id="pane-ml">
+      <div class="card upload-card">
+        <div class="upload-zone" id="mlZone">
+          <input type="file" id="mlFile" accept="image/*" hidden />
+          <div class="upload-zone__inner">
+            <div class="upload-zone__icon">📷</div>
+            <p class="upload-zone__text">Перетащи фото или <span class="link">выбери файл</span></p>
+            <p class="upload-zone__hint">PNG, JPG, JPEG · до 10 МБ</p>
+          </div>
+          <img id="mlPreview" class="upload-zone__preview" alt="превью" />
+        </div>
+        <button class="btn" id="mlBtn" disabled>Анализировать</button>
+      </div>
+
+      <div class="result-grid" id="mlResult" hidden>
+        <div class="result-card result-card--hero">
+          <div class="result-card__label">Тип волос</div>
+          <div class="result-card__big" id="mlHairType">—</div>
+          <div class="confidence-bar">
+            <div class="confidence-bar__fill" id="mlConfBar"></div>
+          </div>
+          <div class="result-card__conf" id="mlConf">—</div>
+          <div class="result-card__tip" id="mlHairTip"></div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-card__label">Форма лица</div>
+          <div class="face-shape-visual" id="mlFaceShape">
+            <canvas id="faceShapeCanvas" width="120" height="150"></canvas>
+            <div class="face-shape-name" id="mlFaceShapeName">—</div>
+          </div>
+          <div class="result-card__tip" id="mlFaceTip"></div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-card__label">Персона</div>
+          <div class="persona">
+            <div class="persona__row">
+              <span class="persona__icon">👤</span>
+              <span id="mlGender">—</span>
+            </div>
+            <div class="persona__row">
+              <span class="persona__icon">🎂</span>
+              <span id="mlAge">—</span>
+            </div>
+          </div>
+          <div class="result-card__label" style="margin-top:1.2rem">Топ-3 прогноза</div>
+          <div class="top3" id="mlTop3"></div>
+        </div>
+
+        <div class="result-card result-card--geo">
+          <div class="result-card__label">Геометрия лица</div>
+          <div class="geo-bars" id="mlGeo"></div>
+        </div>
+
+        <div class="result-card result-card--weights">
+          <div class="result-card__label">Веса ансамбля</div>
+          <div class="weights" id="mlWeights"></div>
+        </div>
+      </div>
+
+      <div class="error-box" id="mlError" hidden></div>
+      <div class="loader" id="mlLoader" hidden>
+        <div class="loader__spinner"></div>
+        <div class="loader__text" id="mlLoaderText">Загружаю модели…</div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════
+         TAB: HairFastGAN — перенос причёски
+    ════════════════════════════════════════════ -->
+    <section class="pane" id="pane-transfer">
+
+      <div class="info-banner">
+        <span class="info-banner__icon">💡</span>
+        <div>
+          <strong>Как это работает:</strong> загрузи три фото — своё лицо, фото с нужной
+          <em>формой</em> причёски и фото с нужным <em>цветом</em> волос.
+          HairFastGAN перенесёт и форму, и цвет на твоё лицо.
+        </div>
+      </div>
+
+      <div class="transfer-layout">
+
+        <!-- Фото 1: лицо -->
+        <div class="card upload-card">
+          <div class="transfer-label">
+            <span class="transfer-label__num">1</span>
+            <span>Твоё фото</span>
+          </div>
+          <div class="upload-zone" id="shFaceZone">
+            <input type="file" id="shFaceFile" accept="image/*" hidden />
+            <div class="upload-zone__inner">
+              <div class="upload-zone__icon">🧑</div>
+              <p class="upload-zone__text">Перетащи или <span class="link">выбери</span></p>
+              <p class="upload-zone__hint">Фронтальное фото лица</p>
+            </div>
+            <img id="shFacePreview" class="upload-zone__preview" alt="твоё фото" />
+          </div>
+        </div>
+
+        <!-- Фото 2: форма причёски -->
+        <div class="card upload-card">
+          <div class="transfer-label">
+            <span class="transfer-label__num">2</span>
+            <span>Форма причёски</span>
+          </div>
+          <div class="upload-zone" id="shShapeZone">
+            <input type="file" id="shShapeFile" accept="image/*" hidden />
+            <div class="upload-zone__inner">
+              <div class="upload-zone__icon">✂️</div>
+              <p class="upload-zone__text">Перетащи или <span class="link">выбери</span></p>
+              <p class="upload-zone__hint">Фото с нужной формой стрижки</p>
+            </div>
+            <img id="shShapePreview" class="upload-zone__preview" alt="форма" />
+          </div>
+        </div>
+
+        <!-- Фото 3: цвет волос -->
+        <div class="card upload-card">
+          <div class="transfer-label">
+            <span class="transfer-label__num">3</span>
+            <span>Цвет волос</span>
+          </div>
+          <div class="upload-zone" id="shColorZone">
+            <input type="file" id="shColorFile" accept="image/*" hidden />
+            <div class="upload-zone__inner">
+              <div class="upload-zone__icon">🎨</div>
+              <p class="upload-zone__text">Перетащи или <span class="link">выбери</span></p>
+              <p class="upload-zone__hint">Фото с нужным цветом волос</p>
+            </div>
+            <img id="shColorPreview" class="upload-zone__preview" alt="цвет" />
+          </div>
+          <!-- Галерея пресетов -->
+          <div class="preset-gallery">
+            <div class="result-card__label" style="margin-bottom:.5rem">Подсказки</div>
+            <div class="presets" id="shPresets"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="btn btn--wide" id="shBtn" disabled>✂️ Примерить причёску</button>
+
+      <!-- Результат -->
+      <div class="sh-result" id="shResult" hidden>
+        <div class="result-card">
+          <div class="result-card__label">Результат — HairFastGAN</div>
+          <div class="sh-compare">
+            <div class="sh-compare__item">
+              <div class="sh-compare__label">Исходное</div>
+              <img id="shOrigImg" class="sh-compare__img" alt="исходное" />
+            </div>
+            <div class="sh-compare__arrow">+</div>
+            <div class="sh-compare__item">
+              <div class="sh-compare__label">Форма</div>
+              <img id="shShapeImg" class="sh-compare__img" alt="форма" />
+            </div>
+            <div class="sh-compare__arrow">+</div>
+            <div class="sh-compare__item">
+              <div class="sh-compare__label">Цвет</div>
+              <img id="shColorImg" class="sh-compare__img" alt="цвет" />
+            </div>
+            <div class="sh-compare__arrow">→</div>
+            <div class="sh-compare__item sh-compare__item--result">
+              <div class="sh-compare__label">Результат</div>
+              <img id="shResultImg" class="sh-compare__img sh-compare__img--glow" alt="результат" />
+            </div>
+          </div>
+          <button class="btn btn--outline" id="shDownloadBtn" style="margin-top:1rem">⬇️ Скачать</button>
+        </div>
+      </div>
+
+      <div class="error-box" id="shError" hidden></div>
+      <div class="loader" id="shLoader" hidden>
+        <div class="loader__spinner"></div>
+        <div class="loader__text" id="shLoaderText">Отправляю в Colab…</div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════
+         TAB: LLM-стилист
+    ════════════════════════════════════════════ -->
+    <section class="pane" id="pane-llm">
+      <div class="card upload-card">
+        <div class="upload-zone" id="llmZone">
+          <input type="file" id="llmFile" accept="image/*" hidden />
+          <div class="upload-zone__inner">
+            <div class="upload-zone__icon">📷</div>
+            <p class="upload-zone__text">Перетащи фото или <span class="link">выбери файл</span></p>
+            <p class="upload-zone__hint">PNG, JPG, JPEG · до 10 МБ</p>
+          </div>
+          <img id="llmPreview" class="upload-zone__preview" alt="превью" />
+        </div>
+        <textarea id="llmPrefs" rows="2"
+          placeholder="Пожелания: «чуть длиннее, без чёлки, холодный блонд…» (необязательно)"></textarea>
+        <button class="btn" id="llmBtn" disabled>Спросить стилиста</button>
+      </div>
+
+      <div class="result-grid result-grid--llm" id="llmResult" hidden>
+        <div class="result-card result-card--llm-main">
+          <div class="result-card__label">Рекомендация стилиста</div>
+          <div class="result-card__tip" id="llmDescription" style="font-size:1rem;line-height:1.6"></div>
+          <div class="llm-attrs" id="llmAttrs"></div>
+        </div>
+        <div class="result-card result-card--raw">
+          <div class="result-card__label">Raw JSON</div>
+          <pre id="llmRaw" class="code">—</pre>
+        </div>
+      </div>
+
+      <div class="error-box" id="llmError" hidden></div>
+      <div class="loader" id="llmLoader" hidden>
+        <div class="loader__spinner"></div>
+        <div class="loader__text">Консультируюсь со стилистом…</div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      ML-модель работает локально · HairFastGAN (AAAI 2025) · LLM через OpenRouter
+    </footer>
+  </main>
+
+  <script src="/static/app.js?v=20260414-2"></script>
+</body>
+</html>
